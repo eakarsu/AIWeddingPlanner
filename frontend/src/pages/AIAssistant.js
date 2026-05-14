@@ -13,6 +13,8 @@ const aiFeatures = [
   { key: 'floral-suggest', icon: '💐', name: 'Floral Designer', endpoint: '/ai/floral-suggest' },
   { key: 'music-suggest', icon: '🎵', name: 'Music Curator', endpoint: '/ai/music-suggest' },
   { key: 'general-advice', icon: '🤖', name: 'General Advice', endpoint: '/ai/general-advice' },
+  { key: 'budget-risk', icon: '⚠️', name: 'Budget Risk', endpoint: '/ai/budget-risk' },
+  { key: 'vendor-performance-prediction', icon: '🔍', name: 'Vendor Performance', endpoint: '/ai/vendor-performance-prediction' },
 ];
 
 const formFields = {
@@ -67,6 +69,12 @@ const formFields = {
   'general-advice': [
     { key: 'question', label: 'Ask anything about wedding planning', type: 'textarea', placeholder: 'What are the most important things to book first? How do I handle family drama with seating? What are creative ways to stay within budget?' },
   ],
+  'budget-risk': [
+    { key: 'notes', label: 'Optional context (the analysis pulls your real budget data)', type: 'textarea', placeholder: 'Anything we should know? e.g. expecting more guests, choosing pricier venue...' },
+  ],
+  'vendor-performance-prediction': [
+    { key: 'vendor_id', label: 'Vendor ID (leave blank to predict for all your vendors)', type: 'number', placeholder: '12' },
+  ],
 };
 
 function AIAssistant() {
@@ -89,7 +97,9 @@ function AIAssistant() {
       const res = await API.post(currentFeature.endpoint, formData);
       setResult(res.data.result);
     } catch (err) {
-      setError(err.response?.data?.error || 'Failed to get AI response. Check your OpenRouter API key in .env');
+      const status = err.response?.status;
+      const msg = err.response?.data?.error || err.message || 'Failed to get AI response.';
+      setError(status === 503 ? `AI service unavailable — set OPENROUTER_API_KEY on the backend. (${msg})` : msg);
     }
     setLoading(false);
   };
