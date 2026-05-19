@@ -40,6 +40,9 @@ app.use('/api/website', require('./routes/website'));
 app.use('/api/ext', require('./routes/extensions')); // Apply pass 5 backlog: vendor reviews, payments, staff, counseling
 app.use('/api/custom', require('./routes/customFeatures'));
 
+// Custom Views - 4 new endpoints (mounted BEFORE 404/error handler)
+app.use('/api/custom-views', require('./routes/customViews'));
+
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', timestamp: new Date().toISOString() });
 });

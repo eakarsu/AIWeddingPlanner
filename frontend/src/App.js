@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate, Link, useLocation } from 'react-router-dom';
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import FeaturePage from './pages/FeaturePage';
@@ -7,7 +7,36 @@ import AIAssistant from './pages/AIAssistant';
 import ProfilePage from './pages/ProfilePage';
 import NotesPage from './pages/NotesPage';
 import BudgetSummary from './pages/BudgetSummary';
+import CustomViewsPage from './pages/CustomViewsPage';
 import './App.css';
+
+function WeddingViewsSidebar() {
+  const loc = useLocation();
+  const active = loc.pathname.startsWith('/custom-views');
+  return (
+    <aside
+      data-testid="wedding-views-sidebar"
+      style={{
+        position: 'fixed', top: 80, right: 16, zIndex: 50,
+        background: 'white', border: '1px solid #e5d6e3', borderRadius: 8,
+        boxShadow: '0 2px 8px rgba(0,0,0,.06)', padding: '10px 14px',
+        fontSize: '.9rem',
+      }}>
+      <div style={{ fontWeight: 700, marginBottom: 6, color: '#8b5e83' }}>Sidebar</div>
+      <Link
+        to="/custom-views"
+        data-testid="sidebar-wedding-views-link"
+        style={{
+          display: 'block', padding: '6px 10px', borderRadius: 4,
+          background: active ? '#8b5e83' : 'transparent',
+          color: active ? 'white' : '#8b5e83', textDecoration: 'none',
+          fontWeight: 600,
+        }}>
+        💍 Wedding Views
+      </Link>
+    </aside>
+  );
+}
 
 function App() {
   const [user, setUser] = useState(null);
