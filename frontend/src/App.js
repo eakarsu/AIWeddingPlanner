@@ -10,6 +10,11 @@ import BudgetSummary from './pages/BudgetSummary';
 import CustomViewsPage from './pages/CustomViewsPage';
 import './App.css';
 
+import CodexCustomVizFeature from './pages/CodexCustomVizFeature';
+import CodexOperationsFeature from './pages/CodexOperationsFeature';
+
+import TimelineView from './pages/TimelineView';
+
 function WeddingViewsSidebar() {
   const loc = useLocation();
   const active = loc.pathname.startsWith('/custom-views');
@@ -65,6 +70,10 @@ function App() {
     return (
       <Router>
         <Routes>
+        <Route path="/insights/timeline" element={<TimelineView />} />
+        <Route path="/codex/custom-viz" element={<CodexCustomVizFeature />} />
+        <Route path="/codex/operations" element={<CodexOperationsFeature />} />
+
           <Route path="*" element={<Login onLogin={handleLogin} />} />
         </Routes>
       </Router>
