@@ -2,13 +2,11 @@ const { Pool } = require('pg');
 const bcrypt = require('bcryptjs');
 require('dotenv').config({ path: '../.env' });
 
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'ai_wedding_planner',
-  user: process.env.DB_USER || 'erolakarsu',
-  password: process.env.DB_PASSWORD || '',
-});
+if (process.env.ALLOW_DESTRUCTIVE_SEED !== 'true') throw new Error('ALLOW_DESTRUCTIVE_SEED=true is required');
+if (!process.env.DATABASE_URL || !process.env.SEED_ADMIN_PASSWORD || !process.env.SEED_ADMIN_EMAIL) {
+  throw new Error('DATABASE_URL, SEED_ADMIN_EMAIL, and SEED_ADMIN_PASSWORD are required');
+}
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
 
 async function seed() {
   console.log('Creating tables...');
@@ -264,10 +262,10 @@ async function seed() {
   console.log('Tables created. Seeding data...');
 
   // Create demo user
-  const hashedPassword = await bcrypt.hash(process.env.DEMO_PASSWORD || 'demo123456', 10);
+  const hashedPassword = await bcrypt.hash(process.env.SEED_ADMIN_PASSWORD, 12);
   const userResult = await pool.query(
     'INSERT INTO users (name, email, password) VALUES ($1, $2, $3) RETURNING id',
-    ['Demo User', process.env.DEMO_EMAIL || 'demo@weddingplanner.com', hashedPassword]
+    ['Seed Administrator', process.env.SEED_ADMIN_EMAIL, hashedPassword]
   );
   const userId = userResult.rows[0].id;
 
@@ -602,7 +600,7 @@ async function seed() {
   }
 
   console.log('Seed data complete! All features seeded with sample data.');
-  console.log('Demo login: ' + (process.env.DEMO_EMAIL || 'demo@weddingplanner.com') + ' / ' + (process.env.DEMO_PASSWORD || 'demo123456'));
+  console.log('Seed user created; credentials were supplied through the environment.');
   await pool.end();
 }
 

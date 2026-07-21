@@ -1,16 +1,8 @@
+'use strict';
 const { Pool } = require('pg');
-require('dotenv').config({ path: '../.env' });
 
-const pool = new Pool({
-  host: process.env.DB_HOST || 'localhost',
-  port: process.env.DB_PORT || 5432,
-  database: process.env.DB_NAME || 'ai_wedding_planner',
-  user: process.env.DB_USER || 'erolakarsu',
-  password: process.env.DB_PASSWORD || '',
-});
-
-pool.on('error', (err) => {
-  console.error('Unexpected error on idle client', err);
-});
+if (!process.env.DATABASE_URL) throw new Error('DATABASE_URL is required');
+const pool = new Pool({ connectionString: process.env.DATABASE_URL });
+pool.on('error', (err) => console.error('Unexpected error on idle client', err));
 
 module.exports = pool;

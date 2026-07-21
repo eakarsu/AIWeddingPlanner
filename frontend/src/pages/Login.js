@@ -24,12 +24,6 @@ function Login({ onLogin }) {
     setLoading(false);
   };
 
-  const fillDemo = () => {
-    setEmail('demo@weddingplanner.com');
-    setPassword('demo123456');
-    setIsRegister(false);
-  };
-
   return (
     <div className="login-page">
       <div className="login-container">
@@ -55,17 +49,11 @@ function Login({ onLogin }) {
 
           <div className="form-group">
             <label>Password</label>
-            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" required />
+            <input type="password" value={password} onChange={e => setPassword(e.target.value)} placeholder="Enter your password" required minLength={isRegister ? 12 : undefined} />
           </div>
 
           <button className="btn btn-primary btn-full btn-lg" type="submit" disabled={loading}>
             {loading ? 'Please wait...' : (isRegister ? 'Create Account' : 'Sign In')}
-          </button>
-
-          <div className="login-divider">or</div>
-
-          <button type="button" className="btn btn-demo btn-full" onClick={fillDemo}>
-            ✨ Quick Demo Login (Click then Sign In)
           </button>
 
           <div className="login-divider">

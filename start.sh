@@ -1,120 +1,13 @@
-#!/bin/bash
+#!/usr/bin/env bash
+set -euo pipefail
 
-# AI Wedding Planner - Start Script
-# This script sets up and starts the full application
-
-set -e
-
-PROJECT_DIR="$(cd "$(dirname "$0")" && pwd)"
-cd "$PROJECT_DIR"
-
-echo ""
-echo "╔══════════════════════════════════════════════╗"
-echo "║      💍 AI Wedding Planner - Starting        ║"
-echo "╚══════════════════════════════════════════════╝"
-echo ""
-
-# Load .env
-if [ -f .env ]; then
-  export $(grep -v '^#' .env | grep -v '^$' | xargs)
-fi
-
-BACKEND_PORT=${BACKEND_PORT:-3001}
-FRONTEND_PORT=${FRONTEND_PORT:-3000}
-
-# ── Clean up used ports ──
-echo "🔧 Cleaning up ports $BACKEND_PORT and $FRONTEND_PORT..."
-cleanup_port() {
-  local port=$1
-  local pids=$(lsof -ti :$port 2>/dev/null || true)
-  if [ -n "$pids" ]; then
-    echo "   Killing processes on port $port: $pids"
-    echo "$pids" | xargs kill -9 2>/dev/null || true
-    sleep 1
-  fi
-}
-cleanup_port $BACKEND_PORT
-cleanup_port $FRONTEND_PORT
-echo "   Ports cleaned."
-
-# ── Check PostgreSQL ──
-echo ""
-echo "🐘 Checking PostgreSQL..."
-if ! pg_isready -q 2>/dev/null; then
-  echo "   Starting PostgreSQL..."
-  brew services start postgresql@14 2>/dev/null || brew services start postgresql 2>/dev/null || true
-  sleep 2
-fi
-echo "   PostgreSQL is running."
-
-# ── Create database if not exists ──
-DB_NAME=${DB_NAME:-ai_wedding_planner}
-echo ""
-echo "📦 Setting up database '$DB_NAME'..."
-if ! psql -lqt 2>/dev/null | cut -d \| -f 1 | grep -qw "$DB_NAME"; then
-  createdb "$DB_NAME" 2>/dev/null || true
-  echo "   Database created."
-else
-  echo "   Database already exists."
-fi
-
-# ── Install backend dependencies ──
-echo ""
-echo "📥 Installing backend dependencies..."
-cd "$PROJECT_DIR/backend"
-npm install --silent 2>&1 | tail -1
-
-# ── Seed database ──
-echo ""
-echo "🌱 Seeding database with demo data..."
-node seed.js
-echo ""
-
-# ── Install frontend dependencies ──
-echo ""
-echo "📥 Installing frontend dependencies..."
-cd "$PROJECT_DIR/frontend"
-npm install --silent 2>&1 | tail -1
-
-# ── Start backend with nodemon (auto-reload) ──
-echo ""
-echo "🚀 Starting backend server on port $BACKEND_PORT (with auto-reload)..."
-cd "$PROJECT_DIR/backend"
-npx nodemon server.js &
-BACKEND_PID=$!
-
-# ── Start frontend (with auto-reload built-in) ──
-echo "🚀 Starting frontend on port $FRONTEND_PORT (with auto-reload)..."
-cd "$PROJECT_DIR/frontend"
-BROWSER=none PORT=$FRONTEND_PORT npm start &
-FRONTEND_PID=$!
-
-# ── Cleanup on exit ──
-cleanup() {
-  echo ""
-  echo "🛑 Shutting down..."
-  kill $BACKEND_PID 2>/dev/null || true
-  kill $FRONTEND_PID 2>/dev/null || true
-  cleanup_port $BACKEND_PORT
-  cleanup_port $FRONTEND_PORT
-  echo "   Goodbye! 💍"
-}
-trap cleanup EXIT INT TERM
-
-echo ""
-echo "╔══════════════════════════════════════════════╗"
-echo "║   ✅ AI Wedding Planner is starting up!      ║"
-echo "║                                              ║"
-echo "║   Frontend: http://localhost:$FRONTEND_PORT        ║"
-echo "║   Backend:  http://localhost:$BACKEND_PORT        ║"
-echo "║                                              ║"
-echo "║   Demo Login:                                ║"
-echo "║   Email: demo@weddingplanner.com             ║"
-echo "║   Pass:  demo123456                          ║"
-echo "║                                              ║"
-echo "║   Press Ctrl+C to stop all services          ║"
-echo "╚══════════════════════════════════════════════╝"
-echo ""
-
-# Wait for processes
-wait
+ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"; ENV_FILE="$ROOT_DIR/.env"; API_DIR="$ROOT_DIR/backend"; UI_DIR="$ROOT_DIR/frontend"; MIGRATION_DIR="$API_DIR/migrations"
+read_env() { awk -F= -v key="$1" '$0 !~ /^[[:space:]]*#/ && $1 == key { value=substr($0,index($0,"=")+1); gsub(/^[[:space:]]+|[[:space:]]+$/, "", value); gsub(/^["\047]|["\047]$/, "", value); print value; exit }' "$ENV_FILE"; }
+load_env_key() { local key="$1" parsed; [ -n "${!key-}" ] && return 0; [ -f "$ENV_FILE" ] || return 0; parsed="$(read_env "$key")"; [ -z "$parsed" ] || export "$key=$parsed"; }
+for key in DATABASE_URL JWT_SECRET GOVERNANCE_TENANT_ID ENABLE_GENERATED_FEATURES ALLOW_SCHEMA_MIGRATION BACKEND_PORT FRONTEND_PORT; do load_env_key "$key"; done
+BACKEND_PORT="${BACKEND_PORT:-3001}"; FRONTEND_PORT="${FRONTEND_PORT:-3000}"
+fail() { printf 'error: %s\n' "$*" >&2; exit 1; }
+check_config() { local jwt_secret="${JWT_SECRET:-}"; command -v node >/dev/null || fail "node is required"; command -v npm >/dev/null || fail "npm is required"; [ -n "${DATABASE_URL:-}" ] || fail "DATABASE_URL is required"; [ -n "${GOVERNANCE_TENANT_ID:-}" ] || fail "GOVERNANCE_TENANT_ID is required"; [ "${#jwt_secret}" -ge 32 ] || fail "JWT_SECRET must contain at least 32 characters"; case "$DATABASE_URL" in *example*|*changeme*|*password@*) fail "DATABASE_URL contains a placeholder" ;; esac; printf 'configuration valid for tenant %s\n' "$GOVERNANCE_TENANT_ID"; }
+migrate() { check_config; [ "${ALLOW_SCHEMA_MIGRATION:-0}" = "1" ] || fail "set ALLOW_SCHEMA_MIGRATION=1 for the explicit migration command"; command -v psql >/dev/null || fail "psql is required for migrations"; local found=0; for migration in "$MIGRATION_DIR"/*.sql; do [ -f "$migration" ] || continue; found=1; psql "$DATABASE_URL" -v ON_ERROR_STOP=1 -f "$migration"; done; [ "$found" = "1" ] || fail "no migrations found"; }
+start_services() { check_config; [ -d "$API_DIR/node_modules" ] || fail "backend dependencies are missing; install them explicitly"; [ -d "$UI_DIR/node_modules" ] || fail "frontend dependencies are missing; install them explicitly"; (cd "$API_DIR" && PORT="$BACKEND_PORT" node server.js) & api_pid=$!; (cd "$UI_DIR" && BROWSER=none PORT="$FRONTEND_PORT" npm start) & ui_pid=$!; trap 'kill "$api_pid" "$ui_pid" 2>/dev/null || true; wait "$api_pid" "$ui_pid" 2>/dev/null || true' INT TERM EXIT; wait "$api_pid" "$ui_pid"; }
+case "${1:-check}" in check) check_config ;; migrate) migrate ;; start) start_services ;; *) fail "usage: $0 {check|migrate|start}" ;; esac
