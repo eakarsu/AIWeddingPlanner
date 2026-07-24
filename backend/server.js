@@ -29,6 +29,7 @@ app.get('/api/health', (req, res) => {
 
 app.use('/api', auth);
 app.use('/api/governance', governanceRouter);
+app.use('/api/runtime-ai', aiLimiter, require('./routes/runtimeAi'));
 
 const operationalRoutes = [
   ['/api/vendors', './routes/vendors'], ['/api/budget', './routes/budget'],

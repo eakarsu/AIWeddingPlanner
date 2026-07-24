@@ -1,0 +1,34 @@
+BEGIN;
+
+CREATE TABLE IF NOT EXISTS users (
+  id SERIAL PRIMARY KEY,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255) UNIQUE NOT NULL,
+  password VARCHAR(255) NOT NULL,
+  role VARCHAR(50) NOT NULL DEFAULT 'planner',
+  created_at TIMESTAMP NOT NULL DEFAULT NOW()
+);
+ALTER TABLE users ADD COLUMN IF NOT EXISTS role VARCHAR(50) NOT NULL DEFAULT 'planner';
+
+CREATE TABLE IF NOT EXISTS guests (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER REFERENCES users(id) ON DELETE CASCADE,
+  name VARCHAR(255) NOT NULL,
+  email VARCHAR(255),
+  rsvp_status VARCHAR(20) DEFAULT 'pending',
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+CREATE TABLE IF NOT EXISTS wedding_profile (
+  id SERIAL PRIMARY KEY,
+  user_id INTEGER UNIQUE REFERENCES users(id) ON DELETE CASCADE,
+  partner1_name VARCHAR(255),
+  partner2_name VARCHAR(255),
+  wedding_date DATE,
+  total_budget DECIMAL(12,2),
+  guest_count_target INTEGER,
+  wedding_style VARCHAR(100),
+  created_at TIMESTAMP DEFAULT NOW()
+);
+
+COMMIT;
