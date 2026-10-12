@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import API from '../services/api';
+import { recordRows } from '../services/recordRows';
 
 const categories = [
   'Venue', 'Design', 'Catering', 'Photography', 'Music',
@@ -31,6 +32,7 @@ const emptyNote = {
 function NotesPage() {
   const navigate = useNavigate();
   const [notes, setNotes] = useState([]);
+  const [loadError, setLoadError] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedNote, setSelectedNote] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -41,11 +43,13 @@ function NotesPage() {
 
   const fetchNotes = useCallback(async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const res = await API.get('/notes');
-      setNotes(res.data);
+      setNotes(recordRows(res.data, 'Notes'));
     } catch (err) {
-      console.error('Error fetching notes:', err);
+      setNotes([]);
+      setLoadError(err.response?.data?.error || err.message || 'Unable to load notes.');
     }
     setLoading(false);
   }, []);
@@ -187,6 +191,7 @@ function NotesPage() {
         </span>
       </div>
 
+      {loadError && <div role="alert" className="login-error">{loadError}</div>}
       {loading ? (
         <div className="ai-loading"><div className="spinner"></div><p>Loading notes...</p></div>
       ) : sortedNotes.length === 0 ? (

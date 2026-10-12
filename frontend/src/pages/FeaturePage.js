@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import API from '../services/api';
+import { recordRows } from '../services/recordRows';
 
 const featureConfig = {
   vendors: {
@@ -320,6 +321,7 @@ function FeaturePage() {
   const config = featureConfig[feature];
 
   const [data, setData] = useState([]);
+  const [loadError, setLoadError] = useState('');
   const [loading, setLoading] = useState(true);
   const [selectedItem, setSelectedItem] = useState(null);
   const [showForm, setShowForm] = useState(false);
@@ -335,11 +337,13 @@ function FeaturePage() {
   const fetchData = useCallback(async () => {
     if (!config) return;
     setLoading(true);
+    setLoadError('');
     try {
       const res = await API.get(config.endpoint);
-      setData(res.data);
+      setData(recordRows(res.data, config.title));
     } catch (err) {
-      console.error(err);
+      setData([]);
+      setLoadError(err.response?.data?.error || err.message || 'Unable to load records.');
     }
     setLoading(false);
   }, [config]);
@@ -575,6 +579,7 @@ function FeaturePage() {
         <span className="result-count">{filteredData.length} item{filteredData.length !== 1 ? 's' : ''}</span>
       </div>
 
+      {loadError && <div role="alert" className="login-error">{loadError}</div>}
       {loading ? (
         <div className="ai-loading"><div className="spinner"></div><p>Loading...</p></div>
       ) : data.length === 0 ? (

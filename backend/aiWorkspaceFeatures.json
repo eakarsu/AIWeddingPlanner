@@ -1,0 +1,44 @@
+[
+  {
+    "name": "DayOfStaffcoordinatorManagementPage",
+    "id": "gap-nonai-aiweddingplanner/day-of-staffcoordinator-management",
+    "title": "Day-of staff/coordinator management",
+    "description": "Prepare a professional advisory report for day-of staff/coordinator management using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "MultiEventSharingRehearsalDinnerBrunchPage",
+    "id": "gap-nonai-aiweddingplanner/multi-event-sharing-rehearsal-dinner-brunch",
+    "title": "Multi-event sharing (rehearsal dinner, brunch)",
+    "description": "Prepare a professional advisory report for multi-event sharing (rehearsal dinner, brunch) using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "PaymentProcessingAndDepositsPage",
+    "id": "gap-nonai-aiweddingplanner/payment-processing-and-deposits",
+    "title": "Payment processing and deposits",
+    "description": "Prepare a professional advisory report for payment processing and deposits using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "SupplierInventoryTrackingRentalsDishwarePage",
+    "id": "gap-nonai-aiweddingplanner/supplier-inventory-tracking-rentals-dishware",
+    "title": "Supplier inventory tracking (rentals, dishware)",
+    "description": "Prepare a professional advisory report for supplier inventory tracking (rentals, dishware) using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "VendorReviewratingSystemPage",
+    "id": "gap-nonai-aiweddingplanner/vendor-reviewrating-system",
+    "title": "Vendor review/rating system",
+    "description": "Prepare a professional advisory report for vendor review/rating system using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  },
+  {
+    "name": "VenueContractTemplateLibraryPage",
+    "id": "gap-nonai-aiweddingplanner/venue-contract-template-library",
+    "title": "Venue contract template library",
+    "description": "Prepare a professional advisory report for venue contract template library using the brief and evidence you provide. Review the findings, assumptions, and action plan before applying changes.",
+    "samples": []
+  }
+]

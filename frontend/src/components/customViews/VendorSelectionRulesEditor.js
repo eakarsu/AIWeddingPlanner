@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import API from '../../services/api';
+import { recordRows } from '../../services/recordRows';
 
 const BLANK = { name: '', category: 'Photography', min_rating: 4, max_price: 1000, required: false, notes: '' };
 const CATEGORIES = ['Photography', 'Florist', 'Catering', 'Music', 'Bakery', 'Videography', 'Transportation', 'Venue', 'Beauty', 'Officiant', 'Other'];
@@ -14,7 +15,7 @@ function VendorSelectionRulesEditor() {
   const load = async () => {
     try {
       const { data } = await API.get('/custom-views/vendor-selection-rules');
-      setRules(data);
+      setRules(recordRows(data, 'Vendor selection rules'));
     } catch (e) { setErr(e.response?.data?.error || e.message); }
   };
   useEffect(() => { load(); }, []);

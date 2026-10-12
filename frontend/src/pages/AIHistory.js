@@ -1,7 +1,8 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
+import AIReport, { reportText, reportValue } from '../components/AIReport';
 import API from '../services/api';
+import { recordRows } from '../services/recordRows';
 
 const ENDPOINTS = [
   { value: '', label: 'All AI Endpoints' },
@@ -23,19 +24,22 @@ const ENDPOINTS = [
 export default function AIHistory() {
   const navigate = useNavigate();
   const [items, setItems] = useState([]);
+  const [loadError, setLoadError] = useState('');
   const [endpoint, setEndpoint] = useState('');
   const [selected, setSelected] = useState(null);
   const [loading, setLoading] = useState(true);
 
   const fetchHistory = useCallback(async () => {
     setLoading(true);
+    setLoadError('');
     try {
       const params = new URLSearchParams({ limit: 100 });
       if (endpoint) params.append('endpoint', endpoint);
       const res = await API.get(`/ai/history?${params.toString()}`);
-      setItems(res.data.results || []);
+      setItems(recordRows(res.data, 'AI history', 'results'));
     } catch (err) {
-      console.error(err);
+      setItems([]);
+      setLoadError(err.response?.data?.error || err.message || 'Unable to load AI history.');
     }
     setLoading(false);
   }, [endpoint]);
@@ -57,6 +61,7 @@ export default function AIHistory() {
         <span className="result-count">{items.length} result{items.length !== 1 ? 's' : ''}</span>
       </div>
 
+      {loadError && <div role="alert" className="login-error">{loadError}</div>}
       {loading ? (
         <div className="ai-loading"><div className="spinner"></div><p>Loading history…</p></div>
       ) : items.length === 0 ? (
@@ -86,7 +91,7 @@ export default function AIHistory() {
                   <td>{it.model_used || '-'}</td>
                   <td>{it.tokens_used || '-'}</td>
                   <td style={{ maxWidth: 360, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                    {(it.result_text || '').slice(0, 100)}…
+                    {reportText(reportValue(it.result_text)).replace(/\s+/g, ' ').slice(0, 100)}…
                   </td>
                   <td onClick={e => e.stopPropagation()}>
                     <button className="btn btn-outline btn-sm" onClick={() => setSelected(it)}>View</button>
@@ -112,13 +117,11 @@ export default function AIHistory() {
               {selected.request_params && Object.keys(selected.request_params).length > 0 && (
                 <details style={{ marginBottom: 16 }}>
                   <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Request Inputs</summary>
-                  <pre style={{ background: 'var(--bg-light, #f5f5f5)', padding: 12, borderRadius: 6, fontSize: 12, marginTop: 8 }}>
-                    {JSON.stringify(selected.request_params, null, 2)}
-                  </pre>
+                  <AIReport response={selected.request_params} title="Request inputs" />
                 </details>
               )}
               <div className="ai-output-body">
-                <ReactMarkdown>{selected.result_text}</ReactMarkdown>
+                <AIReport response={selected.result_text} title={selected.endpoint} model={selected.model_used} tokens={selected.tokens_used} />
               </div>
             </div>
           </div>

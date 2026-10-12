@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
+import AIReport from '../components/AIReport';
 import API from '../services/api';
 
 export default function StressCheck() {
@@ -90,7 +90,7 @@ export default function StressCheck() {
               <h3>Stress Check Report</h3>
             </div>
             <div className="ai-output-body">
-              <ReactMarkdown>{result}</ReactMarkdown>
+              <AIReport response={result} title="AI result" />
             </div>
           </div>
           <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>

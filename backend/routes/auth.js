@@ -51,6 +51,26 @@ router.post('/login', async (req, res) => {
   }
 });
 
+router.post('/demo-login', async (_req, res) => {
+  const email = process.env.DEMO_EMAIL;
+  const password = process.env.DEMO_PASSWORD;
+  if (!email || !password) return res.status(503).json({ error: 'Demo login is not configured' });
+  try {
+    const result = await pool.query('SELECT * FROM users WHERE email = $1', [email]);
+    if (result.rows.length !== 1 || !(await bcrypt.compare(password, result.rows[0].password))) {
+      return res.status(503).json({ error: 'Configured demo account is unavailable' });
+    }
+    const user = result.rows[0];
+    const token = jwt.sign({ id: String(user.id), email: user.email, role: user.role || 'planner',
+      tenantId: process.env.GOVERNANCE_TENANT_ID, subjectIds: [`account:${user.id}`] },
+      process.env.JWT_SECRET, { algorithm: 'HS256', expiresIn: '8h' });
+    res.json({ user: { id: user.id, name: user.name, email: user.email, role: user.role || 'planner' }, token });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Server error' });
+  }
+});
+
 router.get('/me', require('../middleware/auth'), async (req, res) => {
   try {
     const result = await pool.query('SELECT id, name, email, role FROM users WHERE id=$1', [req.user.id]);

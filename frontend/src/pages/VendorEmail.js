@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
+import AIReport from '../components/AIReport';
+import FullFieldPresets from '../components/FullFieldPresets';
 import API from '../services/api';
+import { recordRows } from '../services/recordRows';
 
 const EMAIL_TYPES = [
   { value: 'inquiry', label: '💬 Initial Inquiry & Availability' },
@@ -22,7 +24,7 @@ export default function VendorEmail() {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    API.get('/vendors').then(r => setVendors(r.data || [])).catch(() => {});
+    API.get('/vendors').then(r => setVendors(recordRows(r.data, 'Vendors'))).catch(() => setVendors([]));
   }, []);
 
   const submit = async (e) => {
@@ -58,6 +60,12 @@ export default function VendorEmail() {
       </div>
 
       <form className="ai-form" onSubmit={submit}>
+        <FullFieldPresets value={{ vendorId, emailType, customNotes }} onChange={next => { setEmailType(next.emailType); setCustomNotes(next.customNotes); setResult(''); setError(''); }} disabled={loading} presets={[
+          { label: 'Availability inquiry', values: { emailType: 'inquiry', customNotes: 'Ask about availability for June 12, 2027, service for 120 guests, package details, and a call next week.' } },
+          { label: 'Package negotiation', values: { emailType: 'negotiation', customNotes: 'Thank them for the proposal; ask about a smaller package, delivery fees, and payment milestones.' } },
+          { label: 'Booking confirmation', values: { emailType: 'confirmation', customNotes: 'Confirm the event date, arrival window, agreed services, deposit, and next planning check-in.' } }
+        ]} />
+        <p role="status">The selected vendor stays unchanged. Choose a vendor from your own records, or keep the generic option.</p>
         <div className="form-group">
           <label>Vendor (optional — leave blank for generic)</label>
           <select value={vendorId} onChange={e => setVendorId(e.target.value)}>
@@ -104,7 +112,7 @@ export default function VendorEmail() {
               <span style={{ fontSize: '1.5rem' }}>✉️</span>
               <h3>Email Drafts</h3>
             </div>
-            <div className="ai-output-body"><ReactMarkdown>{result}</ReactMarkdown></div>
+            <div className="ai-output-body"><AIReport response={result} title="AI result" /></div>
           </div>
           <div style={{ display: 'flex', gap: 12, marginTop: 16 }}>
             <button className="btn btn-primary" onClick={copyResult}>📋 Copy to Clipboard</button>

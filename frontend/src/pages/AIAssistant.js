@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
+import AIReport from '../components/AIReport';
+import FullFieldPresets from '../components/FullFieldPresets';
 import API from '../services/api';
 
 const aiFeatures = [
@@ -77,6 +78,37 @@ const formFields = {
   ],
 };
 
+const examples = {
+  budget: ['35000', '55000', '28000'], totalBudget: ['35000', '55000', '28000'], guestCount: ['120', '80', '160'],
+  style: ['Classic Elegant', 'Modern Minimal', 'Rustic Charm'], location: ['Brooklyn, NY', 'Boston, MA', 'Hudson Valley, NY'],
+  preferences: ['Garden ceremony, seasonal menu, live jazz quartet', 'Accessible venue, local catering, quiet lounge', 'Family-style meal, outdoor photos, late shuttle'],
+  priorities: ['Food, photography, and guest transport', 'Accessible venue and relaxed schedule', 'Music, flowers, and family time'],
+  weddingDate: ['2027-06-12', '2027-09-18', '2028-05-20'],
+  currentTasks: ['Venue shortlisted; photographer proposals requested', 'Venue booked; catering tasting scheduled', 'Guest list drafted; music options reviewed'],
+  completedTasks: ['Budget approved; guest list drafted', 'Save-the-dates sent; venue deposit paid', 'Planner hired; venue contract signed'],
+  tables: ['15', '10', '20'], relationships: ['Two family groups, college friends, and coworkers', 'Parents, siblings, and close friends', 'Extended families, children, and wedding party'],
+  constraints: ['Keep divorced relatives at separate tables; seat children with parents', 'Place guests needing step-free access near the entrance', 'Keep elderly guests away from speakers; reserve a kids table'],
+  dietaryNeeds: ['12 vegetarian, 3 vegan, 2 gluten-free', '6 vegetarian, 1 nut allergy, 2 dairy-free', '8 vegetarian, 4 halal, 2 gluten-free'],
+  season: ['Summer', 'Fall', 'Spring'], names: ['Maya and Jordan', 'Avery and Morgan', 'Sam and Taylor'],
+  date: ['June 12, 2027', 'September 18, 2027', 'May 20, 2028'], venue: ['Brooklyn Botanic Garden', 'City loft with step-free access', 'Hudson Valley garden venue'],
+  tone: ['Elegant', 'Heartfelt', 'Playful'], colors: ['Ivory, sage, and blush', 'Cream, rust, and gold', 'White, lilac, and green'],
+  guestDemographics: ['Ages 25–75, mixed generations', 'Mostly 30s–50s, with grandparents', 'Families with children and older relatives'],
+  vibe: ['Elegant & Refined', 'Relaxed & Casual', 'High Energy Dance Party'],
+  question: ['How should we prioritize booking a venue and caterer for 120 guests?', 'What can we simplify in a six-month planning timeline?', 'How can we accommodate mixed dietary needs within budget?'],
+  notes: ['We may have 20 more guests than first estimated; compare budget scenarios.', 'Catering bids are above target; identify tradeoffs.', 'The venue deposit is paid; review remaining cost exposure.'],
+};
+
+function assistantPresets(feature, fields, current) {
+  return ['Garden wedding', 'City celebration', 'Family weekend'].map((label, index) => ({
+    label,
+    values: Object.fromEntries(fields.filter(field => field.key !== 'vendor_id').map(field => {
+      const options = examples[field.key];
+      const candidate = options?.[index] || field.placeholder || `${label}: review wedding planning priorities.`;
+      return [field.key, field.options ? (field.options.includes(candidate) ? candidate : field.options[index % field.options.length]) : candidate];
+    })),
+  }));
+}
+
 function AIAssistant() {
   const navigate = useNavigate();
   const [activeFeature, setActiveFeature] = useState('general-advice');
@@ -134,6 +166,9 @@ function AIAssistant() {
 
       <form className="ai-form" onSubmit={handleSubmit}>
         <h3>{currentFeature.icon} {currentFeature.name}</h3>
+        <FullFieldPresets value={formData} presets={assistantPresets(activeFeature, currentFields, formData)} disabled={loading}
+          onChange={next => { setFormData(next); setResult(''); setError(''); }} />
+        {activeFeature === 'vendor-performance-prediction' && <p role="status">Select an existing vendor ID yourself, or leave this optional field blank to analyze all your vendors. Examples cannot choose a record for you.</p>}
         {currentFields.map(f => (
           <div key={f.key} className="form-group">
             <label>{f.label}</label>
@@ -190,7 +225,7 @@ function AIAssistant() {
             <h3>AI {currentFeature.name} Results</h3>
           </div>
           <div className="ai-output-body">
-            <ReactMarkdown>{result}</ReactMarkdown>
+            <AIReport response={result} title="AI result" />
           </div>
         </div>
       )}

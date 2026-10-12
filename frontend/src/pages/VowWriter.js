@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import ReactMarkdown from 'react-markdown';
+import AIReport from '../components/AIReport';
+import FullFieldPresets from '../components/FullFieldPresets';
 import API from '../services/api';
 
 export default function VowWriter() {
@@ -39,6 +40,11 @@ export default function VowWriter() {
       </div>
 
       <form className="ai-form" onSubmit={submit}>
+        <FullFieldPresets value={form} onChange={setForm} disabled={loading} presets={[
+          { label: 'Shared adventures', values: { partner: 'partner1', tone: 'Heartfelt and sincere, with one touch of humor', length: '90-120 seconds when spoken', memories: 'We got lost hiking in the rain and still laughed all the way home.', promises: 'I promise to keep choosing curiosity and kindness in ordinary days.' } },
+          { label: 'Quiet moments', values: { partner: 'partner2', tone: 'Deeply emotional, no humor', length: '60-90 seconds when spoken', memories: 'You brought soup and stayed with me through a difficult winter.', promises: 'I promise to listen carefully, celebrate your wins, and support you through change.' } },
+          { label: 'Joyful partnership', values: { partner: 'partner1', tone: 'Playful and witty', length: '2-3 minutes when spoken', memories: 'Our first apartment had one chair and a kitchen full of friends.', promises: 'I promise to make room for adventure, share the chores, and keep dancing with you.' } }
+        ]} />
         <div className="form-group">
           <label>Whose Vows?</label>
           <select value={form.partner} onChange={e => setForm({ ...form, partner: e.target.value })}>
@@ -104,7 +110,7 @@ export default function VowWriter() {
             <span style={{ fontSize: '1.5rem' }}>💖</span>
             <h3>Your Vows (3 Versions)</h3>
           </div>
-          <div className="ai-output-body"><ReactMarkdown>{result}</ReactMarkdown></div>
+          <div className="ai-output-body"><AIReport response={result} title="AI result" /></div>
         </div>
       )}
     </div>

@@ -1,5 +1,7 @@
 // // === Batch 09 Gaps & Frontend Mounts ===
 import React, { useState } from 'react';
+import FullFieldPresets from '../../components/FullFieldPresets';
+import AIReport from '../../components/AIReport';
 
 export default function SeatingConflictDetectionWithAiOptimizerPage() {
   const [input, setInput] = useState('');
@@ -27,6 +29,11 @@ export default function SeatingConflictDetectionWithAiOptimizerPage() {
     <div style={{ padding: 24, maxWidth: 900, margin: '0 auto' }}>
       <h1 style={{ fontSize: 24, fontWeight: 700, marginBottom: 8 }}>Seating-conflict detection with AI optimizer</h1>
       <p style={{ color: '#666', marginBottom: 16 }}>Generated gap feature for AIWeddingPlanner.</p>
+      <FullFieldPresets value={{ input }} presets={[
+        { label: 'Wedding scenario', values: { input: 'For a 120-guest wedding, assess seating-conflict detection with ai optimizer. Include practical priorities, assumptions, and a review checklist.' } },
+        { label: 'Planning constraints', values: { input: 'For a wedding with a $35,000 budget and a six-month timeline, explain seating-conflict detection with ai optimizer with dependencies, risks, and next actions.' } },
+        { label: 'Decision briefing', values: { input: 'Prepare a concise decision brief about seating-conflict detection with ai optimizer for a couple and coordinator. Separate verified facts from assumptions.' } }
+      ]} onChange={(next) => setInput(next.input)} disabled={loading} />
       <textarea
         value={input}
         onChange={e => setInput(e.target.value)}
@@ -42,11 +49,7 @@ export default function SeatingConflictDetectionWithAiOptimizerPage() {
         {loading ? 'Running...' : 'Run AI'}
       </button>
       {error && <div style={{ color: 'red', marginTop: 12 }}>{error}</div>}
-      {result && (
-        <pre style={{ marginTop: 16, padding: 12, background: '#f4f4f4', borderRadius: 6, overflow: 'auto', maxHeight: 500 }}>
-{JSON.stringify(result, null, 2)}
-        </pre>
-      )}
+      {result && <AIReport response={result} title="Seating-conflict detection with AI optimizer" />}
     </div>
   );
 }
